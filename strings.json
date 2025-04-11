@@ -28,19 +28,19 @@
     "step": {
       "init": {
         "data": {
-          "device_class": "[%key:component::generic_hygrostat::config::step::user::data::device_class%]",
-          "dry_tolerance": "[%key:component::generic_hygrostat::config::step::user::data::dry_tolerance%]",
-          "humidifier": "[%key:component::generic_hygrostat::config::step::user::data::humidifier%]",
-          "min_cycle_duration": "[%key:component::generic_hygrostat::config::step::user::data::min_cycle_duration%]",
-          "target_sensor": "[%key:component::generic_hygrostat::config::step::user::data::target_sensor%]",
-          "wet_tolerance": "[%key:component::generic_hygrostat::config::step::user::data::wet_tolerance%]"
+          "device_class": "[%key:component::lazy_hygrostat::config::step::user::data::device_class%]",
+          "dry_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data::dry_tolerance%]",
+          "humidifier": "[%key:component::lazy_hygrostat::config::step::user::data::humidifier%]",
+          "min_cycle_duration": "[%key:component::lazy_hygrostat::config::step::user::data::min_cycle_duration%]",
+          "target_sensor": "[%key:component::lazy_hygrostat::config::step::user::data::target_sensor%]",
+          "wet_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data::wet_tolerance%]"
         },
         "data_description": {
-          "dry_tolerance": "[%key:component::generic_hygrostat::config::step::user::data_description::dry_tolerance%]",
-          "humidifier": "[%key:component::generic_hygrostat::config::step::user::data_description::humidifier%]",
-          "min_cycle_duration": "[%key:component::generic_hygrostat::config::step::user::data_description::min_cycle_duration%]",
-          "target_sensor": "[%key:component::generic_hygrostat::config::step::user::data_description::target_sensor%]",
-          "wet_tolerance": "[%key:component::generic_hygrostat::config::step::user::data_description::wet_tolerance%]"
+          "dry_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data_description::dry_tolerance%]",
+          "humidifier": "[%key:component::lazy_hygrostat::config::step::user::data_description::humidifier%]",
+          "min_cycle_duration": "[%key:component::lazy_hygrostat::config::step::user::data_description::min_cycle_duration%]",
+          "target_sensor": "[%key:component::lazy_hygrostat::config::step::user::data_description::target_sensor%]",
+          "wet_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data_description::wet_tolerance%]"
         }
       }
     }
