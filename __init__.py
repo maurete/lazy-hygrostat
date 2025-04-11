@@ -54,7 +54,7 @@ DEFAULT_TOLERANCE = 3
 DEFAULT_NAME = "Generic Hygrostat"
 DEFAULT_ADJUSTMENT_RATE = 0.0
 
-HYGROSTAT_SCHEMA = vol.Schema(
+LAZY_HYGROSTAT_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HUMIDIFIER): cv.entity_id,
         vol.Required(CONF_SENSOR): cv.entity_id,
@@ -81,7 +81,7 @@ HYGROSTAT_SCHEMA = vol.Schema(
 )
 
 CONFIG_SCHEMA = vol.Schema(
-    {DOMAIN: vol.All(cv.ensure_list, [HYGROSTAT_SCHEMA])},
+    {DOMAIN: vol.All(cv.ensure_list, [LAZY_HYGROSTAT_SCHEMA])},
     extra=vol.ALLOW_EXTRA,
 )
 
