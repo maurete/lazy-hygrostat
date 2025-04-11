@@ -231,18 +231,16 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         self._adjustment_rate = adjustment_rate
         self._last_adjustment_time: datetime | None = None
 
-        # Add tracking for automatic adjustment if adjustment rate is non-zero
-        if self._adjustment_rate > 0:
-            self.async_on_remove(
-                async_track_time_interval(
-                    self.hass, self._async_adjust_target_humidity, timedelta(
-                        minutes=1)
-                )
-            )
-
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added."""
         await super().async_added_to_hass()
+
+        if self._adjustment_rate > 0:
+            self.async_on_remove(
+                async_track_time_interval(
+                    self.hass, self._async_adjust_target_humidity, timedelta(minutes=1)
+                )
+            )
 
         self.async_on_remove(
             async_track_state_change_event(
