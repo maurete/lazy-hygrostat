@@ -56,6 +56,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import (
+    CONF_ADJUSTMENT_RATE,
     CONF_AWAY_FIXED,
     CONF_AWAY_HUMIDITY,
     CONF_DEVICE_CLASS,

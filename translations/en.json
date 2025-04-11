@@ -1,6 +1,7 @@
 {
   "title": "Lazy Hygrostat",
   "config": {
+    "flow_title": "Lazy Hygrostat",
     "step": {
       "user": {
         "title": "Create lazy hygrostat",
@@ -10,7 +11,7 @@
           "dry_tolerance": "Dry tolerance",
           "humidifier": "Switch",
           "min_cycle_duration": "Minimum cycle duration",
-          "name": "[%key:common::config_flow::data::name%]",
+          "name": "Name",
           "target_sensor": "Humidity sensor",
           "wet_tolerance": "Wet tolerance",
           "adjustment_rate": "Humidity adjustment rate (% per hour)"
