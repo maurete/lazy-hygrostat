@@ -125,3 +125,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(
         entry, (Platform.HUMIDIFIER,)
     )
+
+
+async def async_register_helpers(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register helpers."""
+    return True

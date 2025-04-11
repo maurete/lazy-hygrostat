@@ -6,5 +6,7 @@
   "dependencies": [],
   "codeowners": ["@maurete"],
   "version": "1.0.0",
-  "quality_scale": "internal"
+  "quality_scale": "internal",
+  "config_flow": true,
+  "integration_type": "helper"
 }
