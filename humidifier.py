@@ -136,10 +136,13 @@ async def _async_setup_config(
     )
     dry_tolerance: float = config[CONF_DRY_TOLERANCE]
     wet_tolerance: float = config[CONF_WET_TOLERANCE]
-    keep_alive: timedelta | None = _time_period_or_none(config.get(CONF_KEEP_ALIVE))
+    keep_alive: timedelta | None = _time_period_or_none(
+        config.get(CONF_KEEP_ALIVE))
     initial_state: bool | None = config.get(CONF_INITIAL_STATE)
     away_humidity: int | None = config.get(CONF_AWAY_HUMIDITY)
     away_fixed: bool | None = config.get(CONF_AWAY_FIXED)
+    adjustment_rate: float = config.get(
+        CONF_ADJUSTMENT_RATE, DEFAULT_ADJUSTMENT_RATE)
 
     async_add_entities(
         [
@@ -161,6 +164,7 @@ async def _async_setup_config(
                 away_fixed,
                 sensor_stale_duration,
                 unique_id,
+                adjustment_rate,
             )
         ]
     )
@@ -190,6 +194,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         away_fixed: bool | None,
         sensor_stale_duration: timedelta | None,
         unique_id: str | None,
+        adjustment_rate: float = 0.0,
     ) -> None:
         """Initialize the hygrostat."""
         self._name = name
@@ -221,6 +226,17 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         self._is_away = False
         self._attr_action = HumidifierAction.IDLE
         self._attr_unique_id = unique_id
+        self._adjustment_rate = adjustment_rate
+        self._last_adjustment_time: datetime | None = None
+
+        # Add tracking for automatic adjustment if adjustment rate is non-zero
+        if self._adjustment_rate > 0:
+            self.async_on_remove(
+                async_track_time_interval(
+                    self.hass, self._async_adjust_target_humidity, timedelta(
+                        minutes=1)
+                )
+            )
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added."""
@@ -263,7 +279,8 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
 
             await self._async_sensor_update(sensor_state)
 
-        self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, _async_startup)
+        self.hass.bus.async_listen_once(
+            EVENT_HOMEASSISTANT_START, _async_startup)
 
         if (old_state := await self.async_get_last_state()) is not None:
             if old_state.attributes.get(ATTR_MODE) == MODE_AWAY:
@@ -271,7 +288,8 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
                 self._saved_target_humidity = self._target_humidity
                 self._target_humidity = self._away_humidity or self._target_humidity
             if old_state.attributes.get(ATTR_HUMIDITY):
-                self._target_humidity = int(old_state.attributes[ATTR_HUMIDITY])
+                self._target_humidity = int(
+                    old_state.attributes[ATTR_HUMIDITY])
             if old_state.attributes.get(ATTR_SAVED_HUMIDITY):
                 self._saved_target_humidity = int(
                     old_state.attributes[ATTR_SAVED_HUMIDITY]
@@ -533,7 +551,8 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
                 ) or (
                     self._device_class == HumidifierDeviceClass.DEHUMIDIFIER and too_dry
                 ):
-                    _LOGGER.debug("Turning off humidifier %s", self._switch_entity_id)
+                    _LOGGER.debug("Turning off humidifier %s",
+                                  self._switch_entity_id)
                     await self._async_device_turn_off()
                 elif time is not None:
                     # The time argument is passed only in keep-alive case
@@ -541,7 +560,8 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             elif (
                 self._device_class == HumidifierDeviceClass.HUMIDIFIER and too_dry
             ) or (self._device_class == HumidifierDeviceClass.DEHUMIDIFIER and too_wet):
-                _LOGGER.debug("Turning on humidifier %s", self._switch_entity_id)
+                _LOGGER.debug("Turning on humidifier %s",
+                              self._switch_entity_id)
                 await self._async_device_turn_on()
             elif time is not None:
                 # The time argument is passed only in keep-alive case
@@ -589,3 +609,54 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             await self._async_operate(force=True)
 
         self.async_write_ha_state()
+
+    async def _async_adjust_target_humidity(self, now: datetime) -> None:
+        """Gradually adjust target humidity toward the current measured humidity."""
+        if (
+            not self._active
+            or self._adjustment_rate <= 0
+            or self._cur_humidity is None
+            or self._target_humidity is None
+            or self._is_away  # Don't adjust when in away mode
+        ):
+            return
+
+        # Calculate time delta since last adjustment
+        if self._last_adjustment_time is None:
+            self._last_adjustment_time = now
+            return
+
+        # Calculate time passed in hours
+        time_delta_hours = (
+            now - self._last_adjustment_time).total_seconds() / 3600
+        self._last_adjustment_time = now
+
+        # Calculate maximum adjustment based on time passed and adjustment rate
+        max_adjustment = self._adjustment_rate * time_delta_hours
+
+        # Calculate the difference between current and target
+        humidity_difference = self._cur_humidity - self._target_humidity
+
+        # Determine adjustment direction and amount (limited by max_adjustment)
+        if abs(humidity_difference) <= max_adjustment:
+            # We can reach the current humidity in one step
+            new_target = self._cur_humidity
+        else:
+            # Adjust by the maximum amount in the right direction
+            adjustment = max_adjustment if humidity_difference > 0 else -max_adjustment
+            new_target = self._target_humidity + adjustment
+
+        # Ensure the new target is within bounds
+        new_target = min(max(new_target, self.min_humidity), self.max_humidity)
+
+        # Only update if there was an actual change
+        if new_target != self._target_humidity:
+            _LOGGER.debug(
+                "Lazy hygrostat adjusting target from %.1f to %.1f (current: %.1f)",
+                self._target_humidity,
+                new_target,
+                self._cur_humidity,
+            )
+            self._target_humidity = new_target
+            await self._async_operate()
+            self.async_write_ha_state()

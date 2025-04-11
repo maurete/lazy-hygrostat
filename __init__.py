@@ -28,10 +28,12 @@ CONF_INITIAL_STATE = "initial_state"
 CONF_AWAY_HUMIDITY = "away_humidity"
 CONF_AWAY_FIXED = "away_fixed"
 CONF_STALE_DURATION = "sensor_stale_duration"
+CONF_ADJUSTMENT_RATE = "adjustment_rate"
 
 
 DEFAULT_TOLERANCE = 3
 DEFAULT_NAME = "Generic Hygrostat"
+DEFAULT_ADJUSTMENT_RATE = 0.0
 
 HYGROSTAT_SCHEMA = vol.Schema(
     {
@@ -55,6 +57,7 @@ HYGROSTAT_SCHEMA = vol.Schema(
             cv.time_period, cv.positive_timedelta
         ),
         vol.Optional(CONF_UNIQUE_ID): cv.string,
+        vol.Optional(CONF_ADJUSTMENT_RATE, default=DEFAULT_ADJUSTMENT_RATE): vol.Coerce(float),
     }
 )
 

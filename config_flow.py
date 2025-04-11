@@ -24,7 +24,9 @@ from . import (
     CONF_MIN_DUR,
     CONF_SENSOR,
     CONF_WET_TOLERANCE,
+    CONF_ADJUSTMENT_RATE,
     DEFAULT_TOLERANCE,
+    DEFAULT_ADJUSTMENT_RATE,
     DOMAIN,
 )
 
@@ -71,6 +73,17 @@ OPTIONS_SCHEMA = {
     ),
     vol.Optional(CONF_MIN_DUR): selector.DurationSelector(
         selector.DurationSelectorConfig(allow_negative=False)
+    ),
+    vol.Optional(
+        CONF_ADJUSTMENT_RATE, default=DEFAULT_ADJUSTMENT_RATE
+    ): selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            max=50,  # Set a reasonable max value (% per hour)
+            step=0.1,
+            unit_of_measurement="% per hour",
+            mode=selector.NumberSelectorMode.BOX,
+        )
     ),
 }
 
