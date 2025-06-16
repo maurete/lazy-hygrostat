@@ -120,6 +120,14 @@ async def async_setup_entry(
         config_entry.entry_id,
         async_add_entities,
     )
+    platform = entity_platform.async_get_platforms(hass)[
+        "humidifier"
+    ]
+    platform.async_register_entity_service(
+        "toggle_boost",
+        {},
+        "async_toggle_boost",
+    )
 
 
 def _time_period_or_none(value: Any) -> timedelta | None:
