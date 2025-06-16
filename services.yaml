@@ -1,0 +1,8 @@
+toggle_boost:
+  name: Toggle boost
+  description: Toggle the humidifier switch for a boost duration, then resume normal operation
+  target:
+    entity:
+      domain: humidifier
+      integration: lazy_hygrostat
+  fields: {}
