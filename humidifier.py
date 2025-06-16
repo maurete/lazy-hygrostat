@@ -98,14 +98,6 @@ async def async_setup_platform(
         hass, config, config.get(CONF_UNIQUE_ID), async_add_entities
     )
 
-    # Register the entity service on the current platform
-    platform = entity_platform.current_platform.get()
-    platform.async_register_entity_service(
-        "toggle_boost",
-        {},
-        "async_toggle_boost",
-    )
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -119,14 +111,6 @@ async def async_setup_entry(
         config_entry.options,
         config_entry.entry_id,
         async_add_entities,
-    )
-
-    # Register the entity service on the current platform
-    platform = entity_platform.current_platform.get()
-    platform.async_register_entity_service(
-        "toggle_boost",
-        {},
-        "async_toggle_boost",
     )
 
 
@@ -190,6 +174,13 @@ async def _async_setup_config(
                 boost_duration,
             )
         ]
+    )
+
+    platform = entity_platform.current_platform.get()
+    platform.async_register_entity_service(
+        "toggle_boost",
+        {},
+        "async_toggle_boost",
     )
 
 
