@@ -97,6 +97,14 @@ async def async_setup_platform(
     await _async_setup_config(
         hass, config, config.get(CONF_UNIQUE_ID), async_add_entities
     )
+    platform = entity_platform.async_get_platforms(hass)[
+        "humidifier"
+    ]
+    platform.async_register_entity_service(
+        "toggle_boost",
+        {},
+        "async_toggle_boost",
+    )
 
 
 async def async_setup_entry(
@@ -174,13 +182,6 @@ async def _async_setup_config(
                 boost_duration,
             )
         ]
-    )
-
-    platform = entity_platform.async_get_current_platform()
-    platform.async_register_entity_service(
-        "toggle_boost",
-        {},
-        "async_toggle_boost",
     )
 
 
