@@ -59,6 +59,7 @@ from . import (
     CONF_ADJUSTMENT_RATE,
     CONF_AWAY_FIXED,
     CONF_AWAY_HUMIDITY,
+    CONF_BOOST_DURATION,
     CONF_DEVICE_CLASS,
     CONF_DRY_TOLERANCE,
     CONF_HUMIDIFIER,
@@ -72,6 +73,8 @@ from . import (
     CONF_TARGET_HUMIDITY,
     CONF_WET_TOLERANCE,
     DEFAULT_ADJUSTMENT_RATE,
+    DEFAULT_BOOST_DURATION,
+    DOMAIN,
     LAZY_HYGROSTAT_SCHEMA,
 )
 
@@ -79,7 +82,8 @@ _LOGGER = logging.getLogger(__name__)
 
 ATTR_SAVED_HUMIDITY = "saved_humidity"
 
-PLATFORM_SCHEMA = HUMIDIFIER_PLATFORM_SCHEMA.extend(LAZY_HYGROSTAT_SCHEMA.schema)
+PLATFORM_SCHEMA = HUMIDIFIER_PLATFORM_SCHEMA.extend(
+    LAZY_HYGROSTAT_SCHEMA.schema)
 
 
 async def async_setup_platform(
@@ -145,30 +149,36 @@ async def _async_setup_config(
     away_fixed: bool | None = config.get(CONF_AWAY_FIXED)
     adjustment_rate: float = config.get(
         CONF_ADJUSTMENT_RATE, DEFAULT_ADJUSTMENT_RATE)
+    boost_duration = config.get(CONF_BOOST_DURATION, DEFAULT_BOOST_DURATION)
 
-    async_add_entities(
-        [
-            GenericHygrostat(
-                hass,
-                name,
-                switch_entity_id,
-                sensor_entity_id,
-                min_humidity,
-                max_humidity,
-                target_humidity,
-                device_class,
-                min_cycle_duration,
-                dry_tolerance,
-                wet_tolerance,
-                keep_alive,
-                initial_state,
-                away_humidity,
-                away_fixed,
-                sensor_stale_duration,
-                unique_id,
-                adjustment_rate,
-            )
-        ]
+    entity = GenericHygrostat(
+        hass,
+        name,
+        switch_entity_id,
+        sensor_entity_id,
+        min_humidity,
+        max_humidity,
+        target_humidity,
+        device_class,
+        min_cycle_duration,
+        dry_tolerance,
+        wet_tolerance,
+        keep_alive,
+        initial_state,
+        away_humidity,
+        away_fixed,
+        sensor_stale_duration,
+        unique_id,
+        adjustment_rate,
+        boost_duration,
+    )
+    async_add_entities([entity])
+
+    async def handle_toggle_boost(call):
+        await entity.async_toggle_boost()
+
+    hass.services.async_register(
+        DOMAIN, "toggle_boost", handle_toggle_boost
     )
 
 
@@ -197,6 +207,7 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         sensor_stale_duration: timedelta | None,
         unique_id: str | None,
         adjustment_rate: float = 0.0,
+        boost_duration: int = DEFAULT_BOOST_DURATION,
     ) -> None:
         """Initialize the hygrostat."""
         self._name = name
@@ -230,6 +241,9 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._adjustment_rate = adjustment_rate
         self._last_adjustment_time: datetime | None = None
+        self._boost_duration = boost_duration
+        self._boost_task: asyncio.Task | None = None
+        self._boost_active = False
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added."""
@@ -238,7 +252,8 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
         if self._adjustment_rate > 0:
             self.async_on_remove(
                 async_track_time_interval(
-                    self.hass, self._async_adjust_target_humidity, timedelta(minutes=1)
+                    self.hass, self._async_adjust_target_humidity, timedelta(
+                        minutes=1)
                 )
             )
 
@@ -495,6 +510,9 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
     ) -> None:
         """Check if we need to turn humidifying on or off."""
         async with self._humidity_lock:
+            if self._boost_active:
+                # During boost, do not interfere
+                return
             if not self._active and None not in (
                 self._cur_humidity,
                 self._target_humidity,
@@ -659,4 +677,33 @@ class GenericHygrostat(HumidifierEntity, RestoreEntity):
             )
             self._target_humidity = new_target
             await self._async_operate()
+            self.async_write_ha_state()
+
+    async def async_toggle_boost(self):
+        """Toggle the switch for a boost duration, then resume normal logic."""
+        if self._boost_task:
+            self._boost_task.cancel()
+            self._boost_task = None
+
+        self._boost_active = True
+
+        # Toggle the switch
+        if self._is_device_active:
+            await self._async_device_turn_off()
+        else:
+            await self._async_device_turn_on()
+
+        # Schedule end of boost
+        self._boost_task = asyncio.create_task(self._async_end_boost())
+
+    async def _async_end_boost(self):
+        try:
+            await asyncio.sleep(self._boost_duration)
+        except asyncio.CancelledError:
+            return
+        finally:
+            self._boost_active = False
+            self._boost_task = None
+            # Resume normal hygrostat logic
+            await self._async_operate(force=True)
             self.async_write_ha_state()

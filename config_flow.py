@@ -28,6 +28,8 @@ from . import (
     DEFAULT_TOLERANCE,
     DEFAULT_ADJUSTMENT_RATE,
     DOMAIN,
+    CONF_BOOST_DURATION,
+    DEFAULT_BOOST_DURATION,
 )
 
 OPTIONS_SCHEMA = {
@@ -82,6 +84,17 @@ OPTIONS_SCHEMA = {
             max=50,  # Set a reasonable max value (% per hour)
             step=0.1,
             unit_of_measurement="% per hour",
+            mode=selector.NumberSelectorMode.BOX,
+        )
+    ),
+    vol.Optional(
+        CONF_BOOST_DURATION, default=DEFAULT_BOOST_DURATION
+    ): selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=1,
+            max=3600,
+            step=1,
+            unit_of_measurement="seconds",
             mode=selector.NumberSelectorMode.BOX,
         )
     ),

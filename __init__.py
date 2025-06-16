@@ -48,11 +48,13 @@ CONF_AWAY_HUMIDITY = "away_humidity"
 CONF_AWAY_FIXED = "away_fixed"
 CONF_STALE_DURATION = "sensor_stale_duration"
 CONF_ADJUSTMENT_RATE = "adjustment_rate"
+CONF_BOOST_DURATION = "boost_duration"
 
 
 DEFAULT_TOLERANCE = 3
 DEFAULT_NAME = "Generic Hygrostat"
 DEFAULT_ADJUSTMENT_RATE = 0.0
+DEFAULT_BOOST_DURATION = 600
 
 LAZY_HYGROSTAT_SCHEMA = vol.Schema(
     {
@@ -77,6 +79,7 @@ LAZY_HYGROSTAT_SCHEMA = vol.Schema(
         ),
         vol.Optional(CONF_UNIQUE_ID): cv.string,
         vol.Optional(CONF_ADJUSTMENT_RATE, default=DEFAULT_ADJUSTMENT_RATE): vol.Coerce(float),
+        vol.Optional(CONF_BOOST_DURATION, default=DEFAULT_BOOST_DURATION): vol.Coerce(int),
     }
 )
 
