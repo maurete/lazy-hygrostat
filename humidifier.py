@@ -41,7 +41,7 @@ from homeassistant.core import (
     State,
     callback,
 )
-from homeassistant.helpers import condition, config_validation as cv
+from homeassistant.helpers import condition, config_validation as cv, entity_platform
 from homeassistant.helpers.device import async_device_info_to_link_from_entity
 from homeassistant.helpers.entity_platform import (
     AddConfigEntryEntitiesCallback,
@@ -74,7 +74,6 @@ from . import (
     CONF_WET_TOLERANCE,
     DEFAULT_ADJUSTMENT_RATE,
     DEFAULT_BOOST_DURATION,
-    DOMAIN,
     LAZY_HYGROSTAT_SCHEMA,
 )
 
@@ -151,34 +150,37 @@ async def _async_setup_config(
         CONF_ADJUSTMENT_RATE, DEFAULT_ADJUSTMENT_RATE)
     boost_duration = config.get(CONF_BOOST_DURATION, DEFAULT_BOOST_DURATION)
 
-    entity = GenericHygrostat(
-        hass,
-        name,
-        switch_entity_id,
-        sensor_entity_id,
-        min_humidity,
-        max_humidity,
-        target_humidity,
-        device_class,
-        min_cycle_duration,
-        dry_tolerance,
-        wet_tolerance,
-        keep_alive,
-        initial_state,
-        away_humidity,
-        away_fixed,
-        sensor_stale_duration,
-        unique_id,
-        adjustment_rate,
-        boost_duration,
+    async_add_entities(
+        [
+            GenericHygrostat(
+                hass,
+                name,
+                switch_entity_id,
+                sensor_entity_id,
+                min_humidity,
+                max_humidity,
+                target_humidity,
+                device_class,
+                min_cycle_duration,
+                dry_tolerance,
+                wet_tolerance,
+                keep_alive,
+                initial_state,
+                away_humidity,
+                away_fixed,
+                sensor_stale_duration,
+                unique_id,
+                adjustment_rate,
+                boost_duration,
+            )
+        ]
     )
-    async_add_entities([entity])
 
-    async def handle_toggle_boost(call):
-        await entity.async_toggle_boost()
-
-    hass.services.async_register(
-        DOMAIN, "toggle_boost", handle_toggle_boost
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        "toggle_boost",
+        {},
+        "async_toggle_boost",
     )
 
 
