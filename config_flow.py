@@ -55,8 +55,8 @@ OPTIONS_SCHEMA = {
         CONF_DRY_TOLERANCE, default=DEFAULT_TOLERANCE
     ): selector.NumberSelector(
         selector.NumberSelectorConfig(
-            min=0,
-            max=100,
+            min=-50,
+            max=50,
             step=0.5,
             unit_of_measurement=PERCENTAGE,
             mode=selector.NumberSelectorMode.BOX,
@@ -66,8 +66,8 @@ OPTIONS_SCHEMA = {
         CONF_WET_TOLERANCE, default=DEFAULT_TOLERANCE
     ): selector.NumberSelector(
         selector.NumberSelectorConfig(
-            min=0,
-            max=100,
+            min=-50,
+            max=50,
             step=0.5,
             unit_of_measurement=PERCENTAGE,
             mode=selector.NumberSelectorMode.BOX,

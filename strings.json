@@ -14,15 +14,17 @@
           "name": "Name",
           "target_sensor": "Humidity sensor",
           "wet_tolerance": "Wet tolerance",
-          "adjustment_rate": "Humidity adjustment rate (% per hour)"
+          "adjustment_rate": "Humidity adjustment rate (% per hour)",
+          "boost_duration": "Boost duration (seconds)"
         },
         "data_description": {
-          "dry_tolerance": "The minimum amount of difference between the humidity read by the sensor specified in the target sensor option and the target humidity that must change prior to being switched on.",
-          "humidifier": "Humidifier or dehumidifier switch; must be a toggle device.",
-          "min_cycle_duration": "Set a minimum duration for which the specified switch must remain in its current state before it can be toggled off or on.",
-          "target_sensor": "Sensor with current humidity.",
-          "wet_tolerance": "The minimum amount of difference between the humidity read by the sensor specified in the target sensor option and the target humidity that must change prior to being switched off.",
-          "adjustment_rate": "How quickly the target humidity should move toward the current measured humidity (0 for no adjustment)."
+          "dry_tolerance": "How much below target humidity before turning on (humidifier mode) or turning off (dehumidifier mode).",
+          "humidifier": "Switch entity that controls the humidifier or dehumidifier device.",
+          "min_cycle_duration": "Minimum time the device must stay in its current state before switching.",
+          "target_sensor": "Sensor entity that provides current humidity readings.",
+          "wet_tolerance": "How much above target humidity before turning on (dehumidifier mode) or turning off (humidifier mode).",
+          "adjustment_rate": "How quickly the target humidity adjusts toward current humidity (0 to disable).",
+          "boost_duration": "Duration in seconds to keep the device on when boost is activated."
         }
       }
     }
@@ -31,21 +33,23 @@
     "step": {
       "init": {
         "data": {
-          "device_class": "[%key:component::lazy_hygrostat::config::step::user::data::device_class%]",
-          "dry_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data::dry_tolerance%]",
-          "humidifier": "[%key:component::lazy_hygrostat::config::step::user::data::humidifier%]",
-          "min_cycle_duration": "[%key:component::lazy_hygrostat::config::step::user::data::min_cycle_duration%]",
-          "target_sensor": "[%key:component::lazy_hygrostat::config::step::user::data::target_sensor%]",
-          "wet_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data::wet_tolerance%]",
-          "adjustment_rate": "[%key:component::lazy_hygrostat::config::step::user::data::adjustment_rate%]"
+          "device_class": "Device class",
+          "dry_tolerance": "Dry tolerance",
+          "humidifier": "Switch",
+          "min_cycle_duration": "Minimum cycle duration",
+          "target_sensor": "Humidity sensor",
+          "wet_tolerance": "Wet tolerance",
+          "adjustment_rate": "Humidity adjustment rate (% per hour)",
+          "boost_duration": "Boost duration (seconds)"
         },
         "data_description": {
-          "dry_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data_description::dry_tolerance%]",
-          "humidifier": "[%key:component::lazy_hygrostat::config::step::user::data_description::humidifier%]",
-          "min_cycle_duration": "[%key:component::lazy_hygrostat::config::step::user::data_description::min_cycle_duration%]",
-          "target_sensor": "[%key:component::lazy_hygrostat::config::step::user::data_description::target_sensor%]",
-          "wet_tolerance": "[%key:component::lazy_hygrostat::config::step::user::data_description::wet_tolerance%]",
-          "adjustment_rate": "[%key:component::lazy_hygrostat::config::step::user::data_description::adjustment_rate%]"
+          "dry_tolerance": "How much below target humidity before turning on (humidifier mode) or turning off (dehumidifier mode).",
+          "humidifier": "Switch entity that controls the humidifier or dehumidifier device.",
+          "min_cycle_duration": "Minimum time the device must stay in its current state before switching.",
+          "target_sensor": "Sensor entity that provides current humidity readings.",
+          "wet_tolerance": "How much above target humidity before turning on (dehumidifier mode) or turning off (humidifier mode).",
+          "adjustment_rate": "How quickly the target humidity adjusts toward current humidity (0 to disable).",
+          "boost_duration": "Duration in seconds to keep the device on when boost is activated."
         }
       }
     }
@@ -56,6 +60,12 @@
         "humidifier": "Humidifier",
         "dehumidifier": "Dehumidifier"
       }
+    }
+  },
+  "services": {
+    "toggle_boost": {
+      "name": "Toggle boost",
+      "description": "Toggle the humidifier switch for a boost duration, then resume normal operation"
     }
   }
 }
